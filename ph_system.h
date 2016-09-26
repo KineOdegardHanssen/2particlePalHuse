@@ -11,7 +11,7 @@ class PH_System
 public:
 
     double J, h1, h2, a1, b1, c1, Epp, Emm, lambda1, lambda2, beta, va1y, va2x, wp1, wp2, walpha1, walpha2,
-           maxel, minel;
+           maxel, minel, vapx, vamy;
 
     bool Jis0;
     vec elements;

@@ -76,15 +76,18 @@ PH_System::PH_System(double senditinh1, double senditinh2, double senditinJ)
 
     void PH_System::weights()
     {
-        va1y = -((1.0*a1-lambda1)/c1);   // First: Finding the relevant elements of the basis vectors
-        va2x = -((1.0*b1-lambda2)/c1);
+        vapx = -((1.0*b1-lambda1)/c1);   // First: Finding the relevant elements of the basis vectors
+        vamy = -((1.0*a1-lambda2)/c1);
 
-        this->walpha1 = 1.0/(1.0+va1y*va1y); // Weight of |++><++| in en.eig.state with E=lambda1
+        double normp = (1.0+vapx*vapx);
+        double normm = (1.0+vamy*vamy);
+        this->walpha1 = vapx*vapx*1.0/normp; // Weight of |++><++| in en.eig.state with E=lambda1
 
-        this->walpha2 = va2x*va2x/(1.0+va2x*va2x); // Weight of |++><++| in en.eig.state with E=lambda2
+        this->walpha2 = 1.0/normm; // Weight of |++><++| in en.eig.state with E=lambda2
 
-        double r2 = (c1-va1y*a1)/(1.0-va1y*va2x);
-        double r1 = a1 - va2x*r2;
-        this->wp1 = r1/lambda1;
-        this->wp2 = r2*va2x/lambda2;
+        double r1 = normp*(c1-a1*vamy)/(1-vapx*vamy);
+        double r2 = normm*(a1 - r1*vapx/normp);
+
+        this->wp1 = r1*vapx/lambda1;
+        this->wp2 = r2/lambda2;
     }

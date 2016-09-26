@@ -16,13 +16,15 @@ void plotrandomuniformhJdivhpretty(int averaging, int n, int maxit, double toler
 
 
 int main()
-{
+{   
     //Constants for initializing PH_Running
     int N = 301;
     int maxit = 1e7;
     double tolerance = 1e-6;
 
 
+    PH_Running testrun(N, maxit, tolerance, "test");
+    testrun.runit(1,1,1);
 
     //Constants for initializing PH_evolve
     // Comment out as needed
@@ -37,7 +39,7 @@ int main()
     plotvaryingJ(N, maxit, tolerance, h1, h2, Jmin, Jmax, filename_varyingJ);
     */
 
-
+    /*
     //plot_..._rangeh, plot_randomuniform
     double J = 1;
     double hmin = 0.25;
@@ -48,6 +50,7 @@ int main()
     int averaging = 500;           // Should this?
     string filename_randomh = "randompot_h0p25to1000_J1_av500_res1001_filtered_cranked_improved";
     plotrandomuniformhJdivhpretty(averaging, n, maxit, tolerance, J, hmin, hmax, filename_randomh);
+    */
 
 }
 
