@@ -8,6 +8,12 @@ using namespace std;
 using namespace arma;
 
 // So I guess I should do something like what I did in Python and plot J/|h|... Make an own function for that?
+PH_Running::PH_Running()
+{
+
+}
+
+
 PH_Running::PH_Running(int N, int maxit,double tolerance, string filenamePrefix)
 {
     this->tolerance=tolerance;
@@ -21,6 +27,11 @@ PH_Running::PH_Running(int N, int maxit,double tolerance, string filenamePrefix)
 void PH_Running::runit(double h1, double h2, double J)
 {
     Iteration = PH_Evolve(maxit, h1, h2, J, tolerance);
+    cout << "|delta_rho| for:" << endl;
+    cout << "The E++-state:" << abs(Iteration.delta_rho_Epp) << endl;
+    cout << "The E---state:" << abs(Iteration.delta_rho_Emm) << endl;
+    cout << "The lambda1-state:" << abs(Iteration.delta_rho_2nd) << endl;
+    cout << "The lambda2-state:" << abs(Iteration.delta_rho_3rd) << endl;
 }
 
 

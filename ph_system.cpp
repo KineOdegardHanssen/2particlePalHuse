@@ -44,8 +44,8 @@ PH_System::PH_System(double senditinh1, double senditinh2, double senditinJ)
         a1 = (h1-h2-J)/2.0;
         b1 = (-h1+h2-J)/2.0;
         c1 = J;
-        this->lambda1 =(a1+b1+sqrt((a1+b1)*(a1+b1) - 4.0*(a1*b1-c1*c1)))/2.0;
-        this->lambda2 =(a1+b1-sqrt((a1+b1)*(a1+b1) - 4.0*(a1*b1-c1*c1)))/2.0;
+        this->lambda1 =(a1+b1+sqrt((a1-b1)*(a1-b1) - 4.0*c1*c1))/2.0;
+        this->lambda2 =(a1+b1-sqrt((a1-b1)*(a1-b1) - 4.0*c1*c1))/2.0;
 
         elements = zeros(4);
         elements(0) = Epp;
@@ -80,15 +80,18 @@ PH_System::PH_System(double senditinh1, double senditinh2, double senditinJ)
         double vamy_un = -((1.0*a1-lambda2)/c1);
         double normp = 1.0/sqrt(1.0+vapx_un*vapx_un);
         double normm = 1.0/sqrt(1.0+vamy_un*vamy_un);
+        double normpsq = 1.0/(1.0+vapx_un*vapx_un);   // To prevent round-off errors
+        double normmsq = 1.0/(1.0+vamy_un*vamy_un);
         double vapx = vapx_un*normp;   // First: Finding the relevant elements of the basis vectors
         double vapy = normp;
         double vamx = normm;
         double vamy = vamy_un*normm;
+        double vapxsq = vapx_un*vapx_un*normpsq;   // First: Finding the relevant elements of the basis vectors
+        double vamxsq = normmsq;
 
+        this->walpha1 = vapxsq; // Weight of |++><++| in en.eig.state with E=lambda1
 
-        this->walpha1 = vapx*vapx; // Weight of |++><++| in en.eig.state with E=lambda1
-
-        this->walpha2 = vamx*vamx; // Weight of |++><++| in en.eig.state with E=lambda2
+        this->walpha2 = vamxsq; // Weight of |++><++| in en.eig.state with E=lambda2
 
         double r1 = (c1-(a1*vamy/vamx))/(vapy-(vapx*vamy/vamx));
         double r2 = (a1 - r1*vapx)/vamx;

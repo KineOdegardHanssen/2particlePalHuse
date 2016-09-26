@@ -24,7 +24,7 @@ int main()
 
 
     PH_Running testrun(N, maxit, tolerance, "test");
-    testrun.runit(1,1,1);
+    testrun.runit(-10,0,1);
 
     //Constants for initializing PH_evolve
     // Comment out as needed

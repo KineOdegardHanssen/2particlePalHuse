@@ -2,6 +2,14 @@
 #define PH_RUNNING_H
 #include <ph_system.h>
 #include <ph_evolve.h>
+#include <iostream>
+#include <armadillo>
+#include <fstream>
+#include <iomanip>
+#include "time.h"
+#include "ph_system.h"
+#include "ph_evolve.h"
+#include "ph_running.h"
 using std::ofstream; using std::string;
 
 class PH_Running
@@ -15,6 +23,7 @@ public:
     PH_Evolve Iteration;
 
     // Initializing
+    PH_Running();
     PH_Running(int N, int maxit, double tolerance, string filenamePrefix);
 
 
