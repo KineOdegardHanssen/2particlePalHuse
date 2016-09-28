@@ -27,13 +27,17 @@ PH_Running::PH_Running(int N, int maxit,double tolerance, string filenamePrefix)
 void PH_Running::runit(double h1, double h2, double J)
 {
     Iteration = PH_Evolve(maxit, h1, h2, J, tolerance);
+}
+
+void PH_Running::testit(double h1, double h2, double J)
+{
+    runit(h1, h2, J);
     cout << "|delta_rho| for:" << endl;
     cout << "The E++-state:" << abs(Iteration.delta_rho_Epp) << endl;
     cout << "The E---state:" << abs(Iteration.delta_rho_Emm) << endl;
     cout << "The lambda1-state:" << abs(Iteration.delta_rho_2nd) << endl;
     cout << "The lambda2-state:" << abs(Iteration.delta_rho_3rd) << endl;
 }
-
 
 
 
@@ -229,7 +233,7 @@ void PH_Running::plot_randomuniform_Jdivh_pretty(int averaging, double J, double
 
     // Open file for printing delta_rhos to file
     this->filenamePrefix = filenamePrefix;
-    char *filename1 = new char[1000];                                    // File name can have max 1000 characters
+    char *filename1 = new char[1000];                                     // File name can have max 1000 characters
     sprintf(filename1, "%s_coordinateFile.txt", filenamePrefix.c_str() ); // Create filename with prefix and ending
     coordinateFile.open(filename1);
     delete filename1;
@@ -240,26 +244,34 @@ void PH_Running::plot_randomuniform_Jdivh_pretty(int averaging, double J, double
     //diffFile.open(filename2);
     //delete filename2;
 
-    vec Jdivhssmall, Jdivhslarge, hs;
+    vec Jdivhssmall, Jdivhslarge, Jdivhs, hs;
     double h, counter;
 
     double minJ = J/hmax;
     double maxJ = J/hmin;
+    cout << "minJ = " << minJ << "; maxJ = " << maxJ << endl;
     // Must have minJ<0.5 && maxJ > 0.6.
-    int littleN = floor(0.9*N);
+    int littleN = floor(0.1*N);
     int deltaN = N - littleN;
     Jdivhssmall = linspace(minJ, 0.65, littleN);
     Jdivhslarge = linspace(0.65, maxJ, deltaN);
+    Jdivhs = zeros(N);
     hs = zeros(N);
-    for(int j=0; j<littleN; j++)        hs[j] = 1./Jdivhssmall[j];
+    for(int j=0; j<littleN; j++)
+    {
+        hs[j] = J/Jdivhssmall[j];
+        Jdivhs[j] = Jdivhssmall[j];
+    }
     int j = littleN-1;
     for(int k=0; k<deltaN; k++)
     {
         j++;
-        hs[j] = 1./Jdivhslarge[k];
+        hs[j] = J/Jdivhslarge[k];
+        Jdivhs[j] = Jdivhslarge[k];
+        //cout << "j = " << j << "; hs[j] = " << hs[j] << endl;
     }
     // Could have more values for small Jdivhs, but that would take some time to make and result in ugly code...
-
+    cout << max(Jdivhs) << endl;
     double rmsdelta_rho_Epp, rmsdelta_rho_Emm, rmsdelta_rho_2nd, rmsdelta_rho_3rd;
     double variance_delta_rho_Epp, variance_delta_rho_Emm, variance_delta_rho_2nd, variance_delta_rho_3rd;
     double stddelta_rho_Epp, stddelta_rho_Emm, stddelta_rho_2nd, stddelta_rho_3rd;
@@ -338,7 +350,7 @@ void PH_Running::plot_randomuniform_Jdivh_pretty(int averaging, double J, double
 
         //Print to file. This may be altered.
         // Print J/h instead? Or h/J?
-        coordinateFile << hs[i]/J << " " << rmsdelta_rho_Epp << " " << rmsdelta_rho_Emm << " " << rmsdelta_rho_2nd << " " <<rmsdelta_rho_3rd << " " << variance_delta_rho_Epp << " " << variance_delta_rho_Emm << " " << variance_delta_rho_2nd << " " << variance_delta_rho_3rd << " " << stddelta_rho_Epp << " " << stddelta_rho_Emm << " " << stddelta_rho_2nd << " " << stddelta_rho_3rd << " " << absmean_delta_rho_Epp << " " << absmean_delta_rho_Emm << " " << absmean_delta_rho_2nd << " " << absmean_delta_rho_3rd << endl;
+        coordinateFile << Jdivhs[i] << " " << rmsdelta_rho_Epp << " " << rmsdelta_rho_Emm << " " << rmsdelta_rho_2nd << " " <<rmsdelta_rho_3rd << " " << variance_delta_rho_Epp << " " << variance_delta_rho_Emm << " " << variance_delta_rho_2nd << " " << variance_delta_rho_3rd << " " << stddelta_rho_Epp << " " << stddelta_rho_Emm << " " << stddelta_rho_2nd << " " << stddelta_rho_3rd << " " << absmean_delta_rho_Epp << " " << absmean_delta_rho_Emm << " " << absmean_delta_rho_2nd << " " << absmean_delta_rho_3rd << endl;
         // Must find a smarter way to print...
 
     } // End loop over i (values of h)

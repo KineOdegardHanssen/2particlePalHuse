@@ -98,6 +98,4 @@ PH_System::PH_System(double senditinh1, double senditinh2, double senditinJ)
 
         this->wp1 = r1*vapx/lambda1;
         this->wp2 = r2*vamx/lambda2;
-
-        cout << "E++ = " << Epp << "; Emm = " << Emm << "; lambda1 = " << lambda1 << "; lambda2 = " << lambda2 << endl;
     }
