@@ -44,8 +44,8 @@ PH_System::PH_System(double senditinh1, double senditinh2, double senditinJ)
         a1 = (h1-h2-J)/2.0;
         b1 = (-h1+h2-J)/2.0;
         c1 = J;
-        this->lambda1 =(a1+b1+sqrt((a1-b1)*(a1-b1) - 4.0*c1*c1))/2.0;
-        this->lambda2 =(a1+b1-sqrt((a1-b1)*(a1-b1) - 4.0*c1*c1))/2.0;
+        this->lambda1 =(a1+b1+sqrt((a1-b1)*(a1-b1) + 4.0*c1*c1))/2.0;
+        this->lambda2 =(a1+b1-sqrt((a1-b1)*(a1-b1) + 4.0*c1*c1))/2.0;
 
         elements = zeros(4);
         elements(0) = Epp;
@@ -82,7 +82,7 @@ PH_System::PH_System(double senditinh1, double senditinh2, double senditinJ)
         double normm = 1.0/sqrt(1.0+vamy_un*vamy_un);
         double normpsq = 1.0/(1.0+vapx_un*vapx_un);   // To prevent round-off errors
         double normmsq = 1.0/(1.0+vamy_un*vamy_un);
-        double vapx = vapx_un*normp;   // First: Finding the relevant elements of the basis vectors
+        double vapx = vapx_un*normp;                  // First: Finding the relevant elements of the basis vectors
         double vapy = normp;
         double vamx = normm;
         double vamy = vamy_un*normm;
@@ -98,4 +98,6 @@ PH_System::PH_System(double senditinh1, double senditinh2, double senditinJ)
 
         this->wp1 = r1*vapx/lambda1;
         this->wp2 = r2*vamx/lambda2;
+
+        cout << "E++ = " << Epp << "; Emm = " << Emm << "; lambda1 = " << lambda1 << "; lambda2 = " << lambda2 << endl;
     }
