@@ -17,7 +17,7 @@ class PH_Running
 public:
     int N, maxit;
     double tolerance;
-    ofstream coordinateFile;
+    ofstream coordinateFile, deltaEppFile, Eppexponentfile, betaFile, allthedataFile;
     ofstream diffFile;
     string filenamePrefix;
     PH_Evolve Iteration;
@@ -38,11 +38,19 @@ public:
     //void plot_rangeJ_largeJ(double h1, double h2, double Jmin, double Jmax); // Only include this if things become REALLY SLOW.
     //void plot_rangeJ_normal(double h1, double h2, double Jmin, double Jmax); //This is basically just plot_rangeJ
 
+    // Fixed fields
     void plot_hom_rangeh(double J, double hmin, double hmax);
     void plot_asym_rangeh(double J,double hmin, double hmax);
 
+    // Random potential
     void plot_randomuniform(int averaging, double J, double hmin, double hmax);
     void plot_randomuniform_Jdivh_pretty(int averaging, double J, double hmin, double hmax);
+
+    // Infinite temperature
+    void plot_randomuniform_Jdivh_pretty_infinitetemp(int averaging, double J, double hmin, double hmax);
+    void plot_hom_rangeh_infinitetemp(double J, double hmin, double hmax);
+    void plot_asym_rangeh_infinitetemp(double J, double hmin, double hmax);
+    void plot_lopsided_rangeh_infinitetemp(double J, double hmin, double hmax);
 
 };
 

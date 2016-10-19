@@ -7,7 +7,9 @@ class PH_Evolve
 public:
 
     double delta_rho_Epp, delta_rho_Emm, delta_rho_2nd, delta_rho_3rd, rhoQpp, rhoQmm, rhoQ2nd, rhoQ3rd,
-           Eppe, Emme, lambda1e, lambda2e, minele, maxele, maxit, tolerance, nm_diff;
+           Eppe, Emme, lambda1e, lambda2e, minele, maxele, maxit, tolerance, nm_diff, betausedpp, betausedmm,
+           betausedl1, betausedl2;
+    bool finitetemp;
 
     PH_System System;
 
@@ -15,6 +17,8 @@ public:
     //Initialization
     PH_Evolve();
     PH_Evolve(int maxit, double sendinh1, double sendinh2, double sendinJ, double tolerance);
+    PH_Evolve(int maxit, double sendinh1, double sendinh2, double sendinJ, double tolerance, bool finitetemp);
+
 
 
 
@@ -44,6 +48,7 @@ public:
 
     void calculate_delta_rhos();
     void calculate_delta_rhos_Jis0();
+    void calculate_delta_rhos_infinitetemp();
 };
 
 #endif // PH_EVOLVE_H

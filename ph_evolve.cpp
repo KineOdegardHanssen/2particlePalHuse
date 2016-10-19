@@ -14,6 +14,7 @@ PH_Evolve::PH_Evolve(int maxit, double sendinh1, double sendinh2, double sendinJ
 {
     this->tolerance=tolerance;
     this->maxit=maxit;
+    finitetemp = false;
 
     //cout << "h1: " << sendinh1 << ", h2:  "<< sendinh2 << ", J: "<< sendinJ << endl; // Seems fine
 
@@ -26,16 +27,39 @@ PH_Evolve::PH_Evolve(int maxit, double sendinh1, double sendinh2, double sendinJ
     minele = System.minel;
     maxele = System.maxel;
 
-    if(System.Jis0 == false)
-    {
-        calculate_delta_rhos();
-    }
-    else
-    {
-        calculate_delta_rhos_Jis0();
-    }
+    if(System.Jis0 == false)        calculate_delta_rhos();
+    else                            calculate_delta_rhos_Jis0();
+} // End initializer
 
+PH_Evolve::PH_Evolve(int maxit, double sendinh1, double sendinh2, double sendinJ, double tolerance, bool finitetemp)
+{
+    this->tolerance=tolerance;
+    this->maxit=maxit;
+    this->finitetemp = finitetemp;
 
+    //cout << "h1: " << sendinh1 << ", h2:  "<< sendinh2 << ", J: "<< sendinJ << endl; // Seems fine
+
+    System = PH_System(sendinh1, sendinh2, sendinJ);
+
+    Eppe = System.Epp;
+    Emme = System.Emm;
+    lambda1e = System.lambda1;
+    lambda2e = System.lambda2;
+    minele = System.minel;
+    maxele = System.maxel;
+
+    if(finitetemp)
+    {
+        if(System.Jis0 == false)
+        {
+            calculate_delta_rhos();
+        }
+        else
+        {
+            calculate_delta_rhos_Jis0();
+        }
+    }
+    else    calculate_delta_rhos_infinitetemp();
 }
 
 void PH_Evolve::calculate_delta_rhos()  //should this be in running_plotting?
@@ -46,24 +70,34 @@ void PH_Evolve::calculate_delta_rhos()  //should this be in running_plotting?
     rhoQ3rd = System.walpha2;
 
     if((Eppe == maxele) || (Eppe == minele)){             // || is the or operator
+        betausedpp = 0; // Default value when set like this
         this->delta_rho_Epp = 0.0;}//rhoQpp - 1 ;} // Extremal
     else{
-         newtonsmethod(Eppe);
-        this->delta_rho_Epp = rhoQpp - rhoth();}
+        newtonsmethod(Eppe);
+        betausedpp = System.beta; // Default value when set
+        this->delta_rho_Epp = rhoQpp - rhoth();
+        //cout << "E++ is not extremal. Delta_rho_Epp = " << delta_rho_Epp << endl;
+    }
     if((Emme == maxele) || (Emme == minele)){
-        this->delta_rho_Emm = rhoQmm;}
+        betausedmm = 0; // Default value when set like this
+        this->delta_rho_Emm = 0.0;}
     else{
         newtonsmethod(Emme);
+        betausedpp = System.beta; // Default value when set like this
         this->delta_rho_Emm = rhoQmm - rhoth();}
     if((lambda1e == maxele) || (lambda1e == minele)){
-        this->delta_rho_2nd = rhoQ2nd - System.wp1;}
+        betausedl1 = 0; // Default value when set like this
+        this->delta_rho_2nd = 0.0;}
     else{
         newtonsmethod(lambda1e);
+        betausedl1 = System.beta; // Default value when set like this
         this->delta_rho_2nd = rhoQ2nd - rhoth();}
     if((lambda2e == maxele) || (lambda2e == minele)){
-        this->delta_rho_3rd = rhoQ3rd - System.wp2;}
+        betausedl2 = 0; // Default value when set like this
+        this->delta_rho_3rd = 0.0;}
     else{
         newtonsmethod(lambda2e);
+        betausedl2 = System.beta; // Default value when set like this
         this->delta_rho_3rd = rhoQ3rd - rhoth();}
 }
 
@@ -89,6 +123,32 @@ void PH_Evolve::calculate_delta_rhos_Jis0()
         this->delta_rho_3rd = rhoQ3rd - rhoth_Jis0();
       }
  }
+
+void PH_Evolve::calculate_delta_rhos_infinitetemp()  //should this be in running_plotting?
+{
+    rhoQpp = 1.0;                       //should these be here? It's practical, but...
+    rhoQmm = 0.0;
+    rhoQ2nd = System.walpha1;
+    rhoQ3rd = System.walpha2;
+    System.beta = 0;          // Should beta really be a property of System?
+
+    double rhothermal = 0.25*(1 + rhoQ2nd + rhoQ3rd);
+
+
+    // The system is at infinite temperature, beta=0. No need to check which energy is the largest
+    this->delta_rho_Epp = rhoQpp - rhothermal;
+    this->delta_rho_Emm = rhoQmm - rhothermal;
+    this->delta_rho_2nd = rhoQ2nd - rhothermal;
+    this->delta_rho_3rd = rhoQ3rd - rhothermal;
+
+    /*
+    cout << "rhothermal: " << rhothermal << endl;
+    cout << "rhoQ2nd = " << rhoQ2nd << "; rhoQ3rd = " << rhoQ3rd << endl;
+    cout << "delta_rho_Epp = " << delta_rho_Epp << "; delta_rho_Emm = " << delta_rho_Emm << endl;
+    cout << "delta_rho_2nd = " << delta_rho_2nd << "; delta_rho_3rd = " << delta_rho_3rd << endl;
+    */
+
+}
 
 
 double PH_Evolve::condition(double eigenenergy, double beta)
