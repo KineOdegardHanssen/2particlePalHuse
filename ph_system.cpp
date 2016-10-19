@@ -39,38 +39,52 @@ PH_System::PH_System(double senditinh1, double senditinh2, double senditinJ)
 
     void PH_System::constructHamiltonian()
     {
-        this->Epp = (h1+h2+J)/2.0;
-        this->Emm = (-h1-h2+J)/2.0;
+        Epp = (h1+h2+J)/2.0;
+        Emm = (-h1-h2+J)/2.0;
         a1 = (h1-h2-J)/2.0;
         b1 = (-h1+h2-J)/2.0;
         c1 = J;
-        this->lambda1 =(a1+b1+sqrt((a1-b1)*(a1-b1) + 4.0*c1*c1))/2.0;
-        this->lambda2 =(a1+b1-sqrt((a1-b1)*(a1-b1) + 4.0*c1*c1))/2.0;
+        lambda1 =(a1+b1+sqrt((a1-b1)*(a1-b1) + 4.0*c1*c1))/2.0;
+        lambda2 =(a1+b1-sqrt((a1-b1)*(a1-b1) + 4.0*c1*c1))/2.0;
 
         elements = zeros(4);
         elements(0) = Epp;
         elements(1) = Emm;
         elements(2) = lambda1;
         elements(3) = lambda2;
-        this->maxel = max(elements);
-        this->minel = min(elements);
+        maxel = max(elements);
+        minel = min(elements);
+
+        double j=0;
+        vec middles(2);
+        for(int i=0; i<4;i++)
+        {
+            if(elements(i)!=maxel && elements(i)!=minel)
+            {
+                middles(j) = elements(i);
+                j++;
+            }
+        }
+        midelbig   =   max(middles);
+        midelsmall = min(middles);
+
     }
 
 
     void PH_System::constructHamiltonian_Jis0()
     {
-        this->Epp = (h1+h2)/2.0;
-        this->Emm = -Epp;
-        this->lambda1 = (h1-h2)/2.0;
-        this->lambda2 = -lambda1;
+        Epp = (h1+h2)/2.0;
+        Emm = -Epp;
+        lambda1 = (h1-h2)/2.0;
+        lambda2 = -lambda1;
 
         elements = zeros(4);
         elements(0) = Epp;
         elements(1) = Emm;
         elements(2) = lambda1;
         elements(3) = lambda2;
-        this->maxel = max(elements);
-        this->minel = min(elements);
+        maxel = max(elements);
+        minel = min(elements);
     }
 
 
@@ -92,4 +106,7 @@ PH_System::PH_System(double senditinh1, double senditinh2, double senditinJ)
 
         //cout << "v_{+x}: " << vapx_un << endl;
         //cout << "v_{-y}: " << vamy_un << endl;
+
+        //cout << "E++ = " << Epp << "; E-- = " << Emm << endl;
+        //cout << "lambda+ = " << lambda1 << "; lambda- = " << lambda2 << endl;
     }

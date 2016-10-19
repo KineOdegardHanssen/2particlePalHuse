@@ -52,6 +52,10 @@ public:
     void plot_asym_rangeh_infinitetemp(double J, double hmin, double hmax);
     void plot_lopsided_rangeh_infinitetemp(double J, double hmin, double hmax);
 
+    // Sorted.
+    void plot_randomuniform_Jdivh_pretty_infinitetemp_sorted(int averaging, double J, double hmin, double hmax);
+    void plot_randomuniform_Jdivh_pretty_sorted(int averaging, double J, double hmin, double hmax);
+
 };
 
 #endif // PH_RUNNING_H

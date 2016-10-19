@@ -7,7 +7,7 @@ class PH_Evolve
 public:
 
     double delta_rho_Epp, delta_rho_Emm, delta_rho_2nd, delta_rho_3rd, rhoQpp, rhoQmm, rhoQ2nd, rhoQ3rd,
-           Eppe, Emme, lambda1e, lambda2e, minele, maxele, maxit, tolerance, nm_diff, betausedpp, betausedmm,
+           Eppe, Emme, lambda1e, lambda2e, minele, maxele, midbigele, midsmallele, maxit, tolerance, nm_diff, betausedpp, betausedmm,
            betausedl1, betausedl2;
     bool finitetemp;
 

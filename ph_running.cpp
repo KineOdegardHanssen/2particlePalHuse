@@ -641,76 +641,320 @@ void PH_Running::plot_lopsided_rangeh_infinitetemp(double J, double hmin, double
 }
 
 
-/*
-
-void PH_Running::plot_rangeJ_normal(double h1, double h2, double Jmin, double Jmax)
+void PH_Running::plot_randomuniform_Jdivh_pretty_infinitetemp_sorted(int averaging, double J, double hmin, double hmax)
 {
-    double J, fraction;
-    double a = clock();
-    // Open coordinate file
-    char *filename = new char[1000];                                    // File name can have max 1000 characters
-    sprintf(filename, "%s_coordinateFile.txt", filenamePrefix.c_str() ); // Create filename with prefix and ending
-    coordinateFile.open(filename);
-    delete filename;
-    vec Js = zeros(N);
-    Js = linspace(Jmin, Jmax, N);  // arma::linspace ?
-    fraction = floor((N-1)/4.0);                   // Unit to check progress. Flooring just in case.
-    for(int i=0; i<N; i++){
-        if (i==fraction)                cout << "25%, time:" << clock()-a << endl;
-        if (i==fraction*2)              cout << "50 %, time:"<< clock()-a << endl;
-        if (i==fraction*3)              cout << "75%, time:" << clock()-a << endl;
-        //Done with printing
-        J = Js[i];
-        runit(h1, h2, J);
-        coordinateFile << J << " " << Iteration.delta_rho_Epp << " " << Iteration.delta_rho_Emm << " " << Iteration.delta_rho_2nd << " " << Iteration.delta_rho_3rd << " " << endl;}
-    coordinateFile.close();
+    // Open file for printing delta_rhos to file
+    char *filename1 = new char[1000];                                     // File name can have max 1000 characters
+    sprintf(filename1, "%s_inftemp_coordinateFile.txt", filenamePrefix.c_str() ); // Create filename with prefix and ending
+    coordinateFile.open(filename1);
+    delete filename1;
+
+    // Open file for printing delta_rho_Epps to file, to investigate the divergence.
+    /*
+    char *filename2 = new char[1000];                                     // File name can have max 1000 characters
+    sprintf(filename2, "%s_deltaEppFile.txt", filenamePrefix.c_str() ); // Create filename with prefix and ending
+    deltaEppFile.open(filename2);
+    delete filename2;
+    */
+
+    bool finitetemp = false;
+
+
+    vec Jdivhssmall, Jdivhslarge, Jdivhs, hs;
+    double h, counter;
+
+    double minJ = J/hmax;
+    double maxJ = J/hmin;
+    cout << "minJ = " << minJ << "; maxJ = " << maxJ << endl;
+    // Must have minJ<0.5 && maxJ > 0.6.
+    int littleN = floor(0.9*N);
+    int deltaN = N - littleN;
+    Jdivhssmall = linspace(minJ, 0.65, littleN);
+    Jdivhslarge = linspace(0.65, maxJ, deltaN);
+    Jdivhs = zeros(N);
+    hs = zeros(N);
+    for(int j=0; j<littleN; j++)
+    {
+        hs[j] = J/Jdivhssmall[j];
+        Jdivhs[j] = Jdivhssmall[j];
     }
-
-void PH_Running::plot_rangeJ_largeJ(double h1, double h2, double Jmin, double Jmax)
-{
-    double J, fraction;
-
-    double a = clock();
-    // Open coordinate file
-    char *filename = new char[1000];                                     // File name can have max 1000 characters
-    sprintf(filename, "%s_coordinateFile.txt", filenamePrefix.c_str() ); // Create filename with prefix and ending
-    coordinateFile.open(filename);
-    delete filename;
-
-    int smallN = int(floor(0.9*N));
-    int deltaN = N - smallN;
-    vec smallJs = zeros(smallN);
-    vec largeJs = zeros(deltaN);
-    smallJs = linspace(Jmin, 5, smallN);                                 // Granted, this works best if Jmin is much smaller than 5 (preferably zero)
-    largeJs = linspace(5, Jmax, deltaN);   // 5+deltaN?
-    fraction = floor((smallN-1)/4.0);                   // Unit to check progress. Flooring just in case.
-    for(int i=0; i<deltaN; i++){
-        if (i==fraction)                cout << "small 25% done, time:" << clock()-a << endl;
-        if (i==fraction*2)              cout << "small 50% done, time:" << clock()-a << endl;
-        if (i==fraction*3)              cout << "small 75% done, time:" << clock()-a << endl;
-        //Done with printing
-        J = smallJs[i];
-        runit(h1, h2, J);
-        coordinateFile << J << " " << Iteration.delta_rho_Epp << " " << Iteration.delta_rho_Emm << " " << Iteration.delta_rho_2nd << " " <<Iteration.delta_rho_3rd << " " << endl;}
-    fraction = floor((deltaN-1)/4.0);                   // Unit to check progress. Flooring just in case.
-    for(int i=0; i<deltaN; i++){
-        if (i==fraction)                cout << "large 25% done, time:" << clock()-a << endl;
-        if (i==fraction*2)              cout << "large 50% done, time:" << clock()-a << endl;
-        if (i==fraction*3)              cout << "large 75% done, time:" << clock()-a << endl;
-        //Done with printing
-        J = largeJs[i];
-        runit(h1, h2, J);
-        coordinateFile << J << " " << Iteration.delta_rho_Epp << " " << Iteration.delta_rho_Emm << " " << Iteration.delta_rho_2nd << " " << Iteration.delta_rho_3rd << " " << endl;}
-    coordinateFile.close();
+    int j = littleN-1;
+    for(int k=0; k<deltaN; k++)
+    {
+        j++;
+        hs[j] = J/Jdivhslarge[k];
+        Jdivhs[j] = Jdivhslarge[k];
+        //cout << "j = " << j << "; hs[j] = " << hs[j] << endl;
     }
+    // Could have more values for small Jdivhs, but that would take some time to make and result in ugly code...
+    cout << max(Jdivhs) << endl;
+    double delta_rho_largest, delta_rho_2ndlargest, delta_rho_2ndsmallest, delta_rho_smallest;
+    double rmsdelta_rho_largest, rmsdelta_rho_2ndlargest, rmsdelta_rho_2ndsmallest, rmsdelta_rho_smallest;
+    double variance_delta_rho_largest, variance_delta_rho_2ndlargest, variance_delta_rho_2ndsmallest, variance_delta_rho_smallest;
+    double stddelta_rho_largest, stddelta_rho_2ndlargest, stddelta_rho_2ndsmallest, stddelta_rho_smallest;
+    double absmean_delta_rho_largest, absmean_delta_rho_2ndlargest, absmean_delta_rho_2ndsmallest, absmean_delta_rho_smallest;
+    for(int i=0; i<N; i++)
+    {
+        cout << "i= " << i << endl;
+        //deltaEppFile << " i = " << endl << endl;
+        counter = 0;       // Should we fix the number of contributions?
+        rmsdelta_rho_largest = 0;
+        rmsdelta_rho_2ndlargest = 0;
+        rmsdelta_rho_2ndsmallest = 0;
+        rmsdelta_rho_smallest = 0;
+        variance_delta_rho_largest = 0;
+        variance_delta_rho_2ndlargest = 0;
+        variance_delta_rho_2ndsmallest = 0;
+        variance_delta_rho_smallest = 0;
+        stddelta_rho_largest = 0;
+        stddelta_rho_2ndlargest = 0;
+        stddelta_rho_2ndsmallest = 0;
+        stddelta_rho_smallest = 0;
+        absmean_delta_rho_largest = 0;
+        absmean_delta_rho_2ndlargest = 0;
+        absmean_delta_rho_2ndsmallest = 0;
+        absmean_delta_rho_smallest = 0;
+        h = hs[i];
+        std::default_random_engine generator;                       // I asked the internet, and it replied
+        std::uniform_real_distribution<double> distribution(-h,h);
+        while(counter<averaging)
+        {
+            double h1 = distribution(generator);
+            double h2 = distribution(generator);
+            Iteration = PH_Evolve(maxit, h1, h2, J, tolerance, finitetemp);
+            if(Iteration.nm_diff < 100*tolerance)
+            {
+                // This is unelegant, but I do not bother making functions. That would be awkward.
+                if(Iteration.Eppe==Iteration.maxele)               delta_rho_largest = Iteration.delta_rho_Epp;
+                else if(Iteration.Emme==Iteration.maxele)          delta_rho_largest = Iteration.delta_rho_Emm;
+                else if(Iteration.lambda1e==Iteration.maxele)      delta_rho_largest = Iteration.delta_rho_2nd;
+                else if(Iteration.lambda2e==Iteration.maxele)      delta_rho_largest = Iteration.delta_rho_3rd;
+
+                if(Iteration.Eppe==Iteration.minele)               delta_rho_smallest = Iteration.delta_rho_Epp;
+                else if(Iteration.Emme==Iteration.minele)          delta_rho_smallest = Iteration.delta_rho_Emm;
+                else if(Iteration.lambda1e==Iteration.minele)      delta_rho_smallest = Iteration.delta_rho_2nd;
+                else if(Iteration.lambda2e==Iteration.minele)      delta_rho_smallest = Iteration.delta_rho_3rd;
+
+                if(Iteration.Eppe==Iteration.midbigele)               delta_rho_2ndlargest = Iteration.delta_rho_Epp;
+                else if(Iteration.Emme==Iteration.midbigele)          delta_rho_2ndlargest = Iteration.delta_rho_Emm;
+                else if(Iteration.lambda1e==Iteration.midbigele)      delta_rho_2ndlargest = Iteration.delta_rho_2nd;
+                else if(Iteration.lambda2e==Iteration.midbigele)      delta_rho_2ndlargest = Iteration.delta_rho_3rd;
+
+                if(Iteration.Eppe==Iteration.midsmallele)               delta_rho_2ndsmallest = Iteration.delta_rho_Epp;
+                else if(Iteration.Emme==Iteration.midsmallele)          delta_rho_2ndsmallest = Iteration.delta_rho_Emm;
+                else if(Iteration.lambda1e==Iteration.midsmallele)      delta_rho_2ndsmallest = Iteration.delta_rho_2nd;
+                else if(Iteration.lambda2e==Iteration.midsmallele)      delta_rho_2ndsmallest = Iteration.delta_rho_3rd;
 
 
-void PH_Running::plot_rangeJ(double h1, double h2, double Jmin, double Jmax)
-{
-    if((Jmax > 5) and (Jmin < 5))        plot_rangeJ_largeJ(h1, h2, Jmin, Jmax);
-    else                                 plot_rangeJ_normal(h1, h2, Jmin, Jmax);
+
+
+                rmsdelta_rho_largest += delta_rho_largest*delta_rho_largest;
+                rmsdelta_rho_2ndlargest += delta_rho_2ndlargest*delta_rho_2ndlargest;
+                rmsdelta_rho_2ndsmallest += delta_rho_2ndsmallest*delta_rho_2ndsmallest;
+                rmsdelta_rho_smallest += delta_rho_smallest*delta_rho_smallest;
+                variance_delta_rho_largest += delta_rho_largest;
+                variance_delta_rho_2ndlargest += delta_rho_2ndlargest;
+                variance_delta_rho_2ndsmallest += delta_rho_2ndsmallest;
+                variance_delta_rho_smallest += delta_rho_smallest;
+                absmean_delta_rho_largest += abs(delta_rho_largest);
+                absmean_delta_rho_2ndlargest += abs(delta_rho_2ndlargest);
+                absmean_delta_rho_2ndsmallest += abs(delta_rho_2ndsmallest);
+                absmean_delta_rho_smallest += abs(delta_rho_smallest);
+                counter++;
+            }
+        }  // End while loop (samples of systems with h1,h2 from random uniform dist from [-h,h])
+
+        // Variance (rmsdelta is still just the sum over the squares)
+        // It's weird that I need to take the absolute value here. Something wrong?
+        // But this is not really the variance? ... So what is it? is it useful at all?
+        variance_delta_rho_largest = abs(rmsdelta_rho_largest - variance_delta_rho_largest*variance_delta_rho_largest)/averaging;
+        variance_delta_rho_2ndlargest = abs(rmsdelta_rho_2ndlargest - variance_delta_rho_2ndlargest*variance_delta_rho_2ndlargest)/averaging;
+        variance_delta_rho_2ndsmallest = abs(rmsdelta_rho_2ndsmallest - variance_delta_rho_2ndsmallest*variance_delta_rho_2ndsmallest)/averaging;
+        variance_delta_rho_smallest = abs(rmsdelta_rho_smallest - variance_delta_rho_smallest*variance_delta_rho_smallest)/averaging;
+        // Standard deviation
+        // Not really the standard deviation?
+        stddelta_rho_largest = sqrt(variance_delta_rho_largest);       // Could calculate this after reading from file
+        stddelta_rho_2ndlargest = sqrt(variance_delta_rho_2ndlargest);
+        stddelta_rho_2ndsmallest = sqrt(variance_delta_rho_2ndsmallest);
+        stddelta_rho_smallest = sqrt(variance_delta_rho_smallest);
+        // Root mean square
+        rmsdelta_rho_largest = sqrt(rmsdelta_rho_largest/averaging);
+        rmsdelta_rho_2ndlargest = sqrt(rmsdelta_rho_2ndlargest/averaging);
+        rmsdelta_rho_2ndsmallest = sqrt(rmsdelta_rho_2ndsmallest/averaging);
+        rmsdelta_rho_smallest = sqrt(rmsdelta_rho_smallest/averaging);
+        // Mean
+        absmean_delta_rho_largest = absmean_delta_rho_largest/averaging;
+        absmean_delta_rho_2ndlargest = absmean_delta_rho_2ndlargest/averaging;
+        absmean_delta_rho_2ndsmallest = absmean_delta_rho_2ndsmallest/averaging;
+        absmean_delta_rho_smallest = absmean_delta_rho_smallest/averaging;
+
+        //deltaEppFile << endl;
+        //deltaEppFile << "absmean: " << absmean_delta_rho_Epp << endl;
+
+        //Print to file. This may be altered.
+        // Print J/h instead? Or h/J?
+        coordinateFile << Jdivhs[i] << " " << rmsdelta_rho_largest << " " << rmsdelta_rho_2ndlargest << " " << rmsdelta_rho_2ndsmallest << " " <<rmsdelta_rho_smallest << " " << variance_delta_rho_largest << " " << variance_delta_rho_2ndlargest << " " << variance_delta_rho_2ndsmallest << " " << variance_delta_rho_smallest << " " << stddelta_rho_largest << " " << stddelta_rho_2ndlargest << " " << stddelta_rho_2ndsmallest << " " << stddelta_rho_smallest << " " << absmean_delta_rho_largest << " " << absmean_delta_rho_2ndlargest << " " << absmean_delta_rho_2ndsmallest << " " << absmean_delta_rho_smallest << endl;
+        // Must find a smarter way to print...
+
+    } // End loop over i (values of h)
+    coordinateFile.close();
 }
 
-*/
+void PH_Running::plot_randomuniform_Jdivh_pretty_sorted(int averaging, double J, double hmin, double hmax)
+{
+    // Open file for printing delta_rhos to file
+    char *filename1 = new char[1000];                                     // File name can have max 1000 characters
+    sprintf(filename1, "%s_inftemp_coordinateFile.txt", filenamePrefix.c_str() ); // Create filename with prefix and ending
+    coordinateFile.open(filename1);
+    delete filename1;
+
+    // Open file for printing delta_rho_Epps to file, to investigate the divergence.
+    /*
+    char *filename2 = new char[1000];                                     // File name can have max 1000 characters
+    sprintf(filename2, "%s_deltaEppFile.txt", filenamePrefix.c_str() ); // Create filename with prefix and ending
+    deltaEppFile.open(filename2);
+    delete filename2;
+    */
+
+    bool finitetemp = true;
+
+
+    vec Jdivhssmall, Jdivhslarge, Jdivhs, hs;
+    double h, counter;
+
+    double minJ = J/hmax;
+    double maxJ = J/hmin;
+    cout << "minJ = " << minJ << "; maxJ = " << maxJ << endl;
+    // Must have minJ<0.5 && maxJ > 0.6.
+    int littleN = floor(0.9*N);
+    int deltaN = N - littleN;
+    Jdivhssmall = linspace(minJ, 0.65, littleN);
+    Jdivhslarge = linspace(0.65, maxJ, deltaN);
+    Jdivhs = zeros(N);
+    hs = zeros(N);
+    for(int j=0; j<littleN; j++)
+    {
+        hs[j] = J/Jdivhssmall[j];
+        Jdivhs[j] = Jdivhssmall[j];
+    }
+    int j = littleN-1;
+    for(int k=0; k<deltaN; k++)
+    {
+        j++;
+        hs[j] = J/Jdivhslarge[k];
+        Jdivhs[j] = Jdivhslarge[k];
+        //cout << "j = " << j << "; hs[j] = " << hs[j] << endl;
+    }
+    // Could have more values for small Jdivhs, but that would take some time to make and result in ugly code...
+    cout << max(Jdivhs) << endl;
+    double delta_rho_largest, delta_rho_2ndlargest, delta_rho_2ndsmallest, delta_rho_smallest;
+    double rmsdelta_rho_largest, rmsdelta_rho_2ndlargest, rmsdelta_rho_2ndsmallest, rmsdelta_rho_smallest;
+    double variance_delta_rho_largest, variance_delta_rho_2ndlargest, variance_delta_rho_2ndsmallest, variance_delta_rho_smallest;
+    double stddelta_rho_largest, stddelta_rho_2ndlargest, stddelta_rho_2ndsmallest, stddelta_rho_smallest;
+    double absmean_delta_rho_largest, absmean_delta_rho_2ndlargest, absmean_delta_rho_2ndsmallest, absmean_delta_rho_smallest;
+    for(int i=0; i<N; i++)
+    {
+        cout << "i= " << i << endl;
+        //deltaEppFile << " i = " << endl << endl;
+        counter = 0;       // Should we fix the number of contributions?
+        rmsdelta_rho_largest = 0;
+        rmsdelta_rho_2ndlargest = 0;
+        rmsdelta_rho_2ndsmallest = 0;
+        rmsdelta_rho_smallest = 0;
+        variance_delta_rho_largest = 0;
+        variance_delta_rho_2ndlargest = 0;
+        variance_delta_rho_2ndsmallest = 0;
+        variance_delta_rho_smallest = 0;
+        stddelta_rho_largest = 0;
+        stddelta_rho_2ndlargest = 0;
+        stddelta_rho_2ndsmallest = 0;
+        stddelta_rho_smallest = 0;
+        absmean_delta_rho_largest = 0;
+        absmean_delta_rho_2ndlargest = 0;
+        absmean_delta_rho_2ndsmallest = 0;
+        absmean_delta_rho_smallest = 0;
+        h = hs[i];
+        std::default_random_engine generator;                       // I asked the internet, and it replied
+        std::uniform_real_distribution<double> distribution(-h,h);
+        while(counter<averaging)
+        {
+            double h1 = distribution(generator);
+            double h2 = distribution(generator);
+            Iteration = PH_Evolve(maxit, h1, h2, J, tolerance, finitetemp);
+            if(Iteration.nm_diff < 100*tolerance)
+            {
+                // This is unelegant, but I do not bother making functions. That would be awkward.
+                if(Iteration.Eppe==Iteration.maxele)               delta_rho_largest = Iteration.delta_rho_Epp;
+                else if(Iteration.Emme==Iteration.maxele)          delta_rho_largest = Iteration.delta_rho_Emm;
+                else if(Iteration.lambda1e==Iteration.maxele)      delta_rho_largest = Iteration.delta_rho_2nd;
+                else if(Iteration.lambda2e==Iteration.maxele)      delta_rho_largest = Iteration.delta_rho_3rd;
+
+                if(Iteration.Eppe==Iteration.minele)               delta_rho_smallest = Iteration.delta_rho_Epp;
+                else if(Iteration.Emme==Iteration.minele)          delta_rho_smallest = Iteration.delta_rho_Emm;
+                else if(Iteration.lambda1e==Iteration.minele)      delta_rho_smallest = Iteration.delta_rho_2nd;
+                else if(Iteration.lambda2e==Iteration.minele)      delta_rho_smallest = Iteration.delta_rho_3rd;
+
+                if(Iteration.Eppe==Iteration.midbigele)               delta_rho_2ndlargest = Iteration.delta_rho_Epp;
+                else if(Iteration.Emme==Iteration.midbigele)          delta_rho_2ndlargest = Iteration.delta_rho_Emm;
+                else if(Iteration.lambda1e==Iteration.midbigele)      delta_rho_2ndlargest = Iteration.delta_rho_2nd;
+                else if(Iteration.lambda2e==Iteration.midbigele)      delta_rho_2ndlargest = Iteration.delta_rho_3rd;
+
+                if(Iteration.Eppe==Iteration.midsmallele)               delta_rho_2ndsmallest = Iteration.delta_rho_Epp;
+                else if(Iteration.Emme==Iteration.midsmallele)          delta_rho_2ndsmallest = Iteration.delta_rho_Emm;
+                else if(Iteration.lambda1e==Iteration.midsmallele)      delta_rho_2ndsmallest = Iteration.delta_rho_2nd;
+                else if(Iteration.lambda2e==Iteration.midsmallele)      delta_rho_2ndsmallest = Iteration.delta_rho_3rd;
+
+
+                rmsdelta_rho_largest += delta_rho_largest*delta_rho_largest;
+                rmsdelta_rho_2ndlargest += delta_rho_2ndlargest*delta_rho_2ndlargest;
+                rmsdelta_rho_2ndsmallest += delta_rho_2ndsmallest*delta_rho_2ndsmallest;
+                rmsdelta_rho_smallest += delta_rho_smallest*delta_rho_smallest;
+                variance_delta_rho_largest += delta_rho_largest;
+                variance_delta_rho_2ndlargest += delta_rho_2ndlargest;
+                variance_delta_rho_2ndsmallest += delta_rho_2ndsmallest;
+                variance_delta_rho_smallest += delta_rho_smallest;
+                absmean_delta_rho_largest += abs(delta_rho_largest);
+                absmean_delta_rho_2ndlargest += abs(delta_rho_2ndlargest);
+                absmean_delta_rho_2ndsmallest += abs(delta_rho_2ndsmallest);
+                absmean_delta_rho_smallest += abs(delta_rho_smallest);
+                counter++;
+            }
+        }  // End while loop (samples of systems with h1,h2 from random uniform dist from [-h,h])
+
+        // Variance (rmsdelta is still just the sum over the squares)
+        // It's weird that I need to take the absolute value here. Something wrong?
+        // But this is not really the variance? ... So what is it? is it useful at all?
+        variance_delta_rho_largest = abs(rmsdelta_rho_largest - variance_delta_rho_largest*variance_delta_rho_largest)/averaging;
+        variance_delta_rho_2ndlargest = abs(rmsdelta_rho_2ndlargest - variance_delta_rho_2ndlargest*variance_delta_rho_2ndlargest)/averaging;
+        variance_delta_rho_2ndsmallest = abs(rmsdelta_rho_2ndsmallest - variance_delta_rho_2ndsmallest*variance_delta_rho_2ndsmallest)/averaging;
+        variance_delta_rho_smallest = abs(rmsdelta_rho_smallest - variance_delta_rho_smallest*variance_delta_rho_smallest)/averaging;
+        // Standard deviation
+        // Not really the standard deviation?
+        stddelta_rho_largest = sqrt(variance_delta_rho_largest);       // Could calculate this after reading from file
+        stddelta_rho_2ndlargest = sqrt(variance_delta_rho_2ndlargest);
+        stddelta_rho_2ndsmallest = sqrt(variance_delta_rho_2ndsmallest);
+        stddelta_rho_smallest = sqrt(variance_delta_rho_smallest);
+        // Root mean square
+        rmsdelta_rho_largest = sqrt(rmsdelta_rho_largest/averaging);
+        rmsdelta_rho_2ndlargest = sqrt(rmsdelta_rho_2ndlargest/averaging);
+        rmsdelta_rho_2ndsmallest = sqrt(rmsdelta_rho_2ndsmallest/averaging);
+        rmsdelta_rho_smallest = sqrt(rmsdelta_rho_smallest/averaging);
+        // Mean
+        absmean_delta_rho_largest = absmean_delta_rho_largest/averaging;
+        absmean_delta_rho_2ndlargest = absmean_delta_rho_2ndlargest/averaging;
+        absmean_delta_rho_2ndsmallest = absmean_delta_rho_2ndsmallest/averaging;
+        absmean_delta_rho_smallest = absmean_delta_rho_smallest/averaging;
+
+        //deltaEppFile << endl;
+        //deltaEppFile << "absmean: " << absmean_delta_rho_Epp << endl;
+
+        //Print to file. This may be altered.
+        // Print J/h instead? Or h/J?
+        coordinateFile << Jdivhs[i] << " " << rmsdelta_rho_largest << " " << rmsdelta_rho_2ndlargest << " " << rmsdelta_rho_2ndsmallest << " " <<rmsdelta_rho_smallest << " " << variance_delta_rho_largest << " " << variance_delta_rho_2ndlargest << " " << variance_delta_rho_2ndsmallest << " " << variance_delta_rho_smallest << " " << stddelta_rho_largest << " " << stddelta_rho_2ndlargest << " " << stddelta_rho_2ndsmallest << " " << stddelta_rho_smallest << " " << absmean_delta_rho_largest << " " << absmean_delta_rho_2ndlargest << " " << absmean_delta_rho_2ndsmallest << " " << absmean_delta_rho_smallest << endl;
+        // Must find a smarter way to print...
+
+    } // End loop over i (values of h)
+    coordinateFile.close();
+}
 
 

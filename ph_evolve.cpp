@@ -26,6 +26,8 @@ PH_Evolve::PH_Evolve(int maxit, double sendinh1, double sendinh2, double sendinJ
     lambda2e = System.lambda2;
     minele = System.minel;
     maxele = System.maxel;
+    midbigele = System.midelbig;
+    midsmallele = System.midelsmall;
 
     if(System.Jis0 == false)        calculate_delta_rhos();
     else                            calculate_delta_rhos_Jis0();
@@ -47,6 +49,8 @@ PH_Evolve::PH_Evolve(int maxit, double sendinh1, double sendinh2, double sendinJ
     lambda2e = System.lambda2;
     minele = System.minel;
     maxele = System.maxel;
+    midbigele = System.midelbig;
+    midsmallele = System.midelsmall;
 
     if(finitetemp)
     {
@@ -147,6 +151,7 @@ void PH_Evolve::calculate_delta_rhos_infinitetemp()  //should this be in running
     cout << "delta_rho_Epp = " << delta_rho_Epp << "; delta_rho_Emm = " << delta_rho_Emm << endl;
     cout << "delta_rho_2nd = " << delta_rho_2nd << "; delta_rho_3rd = " << delta_rho_3rd << endl;
     */
+
 
 }
 

@@ -17,6 +17,7 @@ void plotrandomuniformhJdivhpretty_inftemp(int averaging, int n, int maxit, doub
 void plothomJdivhpretty_inftemp(int n, int maxit, double tolerance, double J, double hmin, double hmax, string filename);
 void plotasymJdivhpretty_inftemp(int n, int maxit, double tolerance, double J, double hmin, double hmax, string filename);
 void plotlopsJdivhpretty_inftemp(int n, int maxit, double tolerance, double J, double hmin, double hmax, string filename);
+void plotrandomuniformhJdivhpretty_inftemp_sorted(int averaging, int n, int maxit, double tolerance, double J, double hmin, double hmax, string filename);
 
 
 int main()
@@ -47,20 +48,20 @@ int main()
 
     //plot_..._rangeh, plot_randomuniform
     double J = 1;
-    double hmin = 0.01;             //
+    double hmin = 0.25;             //
     double hmax = 1000.0;
 
     //plot_randomuniform
-    int n = 1001;                   // Adequate? I don't need that high of a resolution...
-    int averaging = 1000;           // This is a bit too small, probably, but I am testing something.
+    int n = 101;                   // Adequate? I don't need that high of a resolution...
+    int averaging = 500;           // This is a bit too small, probably, but I am testing something.
     //string filename_randomh = "randompot_h1p6to2p5_J1_av100_res101_161016_test2";
     //string filename_randomh = "randompot_h0p0001to1000_J1_av1000_res1001_171016";
-    string filename_randomh = "random_inftemp_191016";
+    string filename_randomh = "test_random_sorted_191016";
     //plotrandomuniformhJdivhpretty(averaging, n, maxit, tolerance, J, hmin, hmax, filename_randomh);
-    //plotrandomuniformhJdivhpretty(averaging, n, maxit, tolerance, J, hmin, hmax, filename_randomh);
-    plotrandomuniformhJdivhpretty_inftemp(averaging, n, maxit, tolerance, J, hmin, hmax, filename_randomh);
+    plotrandomuniformhJdivhpretty(averaging, n, maxit, tolerance, J, hmin, hmax, filename_randomh);
+    //plotrandomuniformhJdivhpretty_inftemp_sorted(averaging, n, maxit, tolerance, J, hmin, hmax, filename_randomh);
     //plotrandomuniformh(averaging, n, maxit, tolerance, J, hmin, hmax, filename_randomh);
-    //plothomJdivhpretty_inftemp(n, maxit, tolerance, J, hmin, hmax, filename_randomh);
+    //plotlopsJdivhpretty_inftemp(n, maxit, tolerance, J, hmin, hmax, filename_randomh);
 
 
 
@@ -189,4 +190,11 @@ void plotlopsJdivhpretty_inftemp(int n, int maxit, double tolerance, double J, d
 {
     PH_Running runhompotential(n, maxit, tolerance, filename);
     runhompotential.plot_lopsided_rangeh_infinitetemp(J, hmin, hmax);
+}
+
+
+void plotrandomuniformhJdivhpretty_inftemp_sorted(int averaging, int n, int maxit, double tolerance, double J, double hmin, double hmax, string filename)
+{
+    PH_Running runrandompotential(n, maxit, tolerance, filename);
+    runrandompotential.plot_randomuniform_Jdivh_pretty_infinitetemp_sorted(averaging, J, hmin, hmax);
 }
